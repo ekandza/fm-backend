@@ -12,6 +12,17 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Connexion
+router.post('/login', async (req, res) => {
+    const { nom, password } = req.body;
+    const user = await Utilisateur.findOne({ nom });
+    if (!user || !(await user.comparePassword(password))) {
+        return res.status(401).json({ message: 'Identifiants invalides' });
+    }
+    const token = jwt.sign({ userId: user._id }, 'secret', { expiresIn: '1h' });
+    res.json({ token });
+});
+
 router.get('/', async (req, res) => {
   const utilisateurs = await Utilisateur.find();
   res.json(utilisateurs);
