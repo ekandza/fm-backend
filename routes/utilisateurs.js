@@ -12,16 +12,38 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+
 // Connexion
 router.post('/login', async (req, res) => {
-    const { nom, password } = req.body;
-    const user = await Utilisateur.findOne({ nom });
-    if (!user || !(await user.comparePassword(password))) {
-        return res.status(401).json({ message: 'Identifiants invalides' });
+    try {
+        const { nom, password } = req.body;
+
+        if (!nom || !password) {
+            return res.status(400).json({ message: 'Nom et mot de passe requis.' });
+        }
+
+        const user = await Utilisateur.findOne({ nom });
+
+        if (!user || user.password !== password) {
+            return res.status(401).json({ message: 'Identifiants incorrects.' });
+        }
+
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({ token, userId: user._id, nom: user.nom });
+    } catch (error) {
+        console.error('Erreur de connexion :', error);
+        res.status(500).json({ message: 'Erreur serveur.' });
     }
-    const token = jwt.sign({ userId: user._id }, 'secret', { expiresIn: '1h' });
-    res.json({ token });
-});
+}); 
+
+
+
 
 router.get('/', async (req, res) => {
   const utilisateurs = await Utilisateur.find();
