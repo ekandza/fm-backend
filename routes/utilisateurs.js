@@ -19,10 +19,7 @@ router.post('/login', async (req, res) => {
     try {
         const { nom, password } = req.body;
 
-        if (!nom || !password) {
-            return res.status(400).json({ message: 'Nom et mot de passe requis.' });
-        }
-
+       
         const user = await Utilisateur.findOne({ nom });
 
         if (!user || user.password !== password) {
